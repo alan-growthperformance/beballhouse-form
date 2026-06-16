@@ -590,19 +590,18 @@ const COUNTER_KEY = 'bbh_session2_count';
 
 async function checkCapacity() {
   try {
-    const res = await fetch('/api/counter');
-    if(!res.ok) return true; // if error, allow
+    const res = await fetch('/api/payment-count');
+    if(!res.ok) return true;
     const data = await res.json();
-    return data.count < MAX_SPOTS;
+    return data.open !== false;
   } catch(e) {
-    return true; // if error, allow
+    return true;
   }
 }
 
 async function incrementCounter() {
-  try {
-    await fetch('/api/counter', { method: 'POST' });
-  } catch(e) {}
+  // Counter is incremented by Stripe webhook on successful payment
+  // No need to increment here
 }
 
 // Check on load
