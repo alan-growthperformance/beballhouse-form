@@ -203,10 +203,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);min-h
     <div style="margin-bottom:22px;">
       <div class="step-hdr"><div class="snum">3</div><h3 data-i18n="q3_title">Combien tu mettrais pour 2h ?</h3></div>
       <div class="pcards">
-        <div class="pcard" onclick="selCard(this,'price')"><span class="amt">5€</span><span class="lbl" data-i18n="p5">Budget serré</span></div>
-        <div class="pcard" onclick="selCard(this,'price')"><span class="amt">8€</span><span class="lbl" data-i18n="p8">Sweet spot 🎯</span></div>
-        <div class="pcard" onclick="selCard(this,'price')"><span class="amt">10€</span><span class="lbl" data-i18n="p10">Pour de la qualité</span></div>
-        <div class="pcard" onclick="selCard(this,'price')"><span class="amt">12€+</span><span class="lbl" data-i18n="p12">Si c'est premium</span></div>
+        <div class="pcard" onclick="selCard(this,'price')"><span class="amt">0–5€</span><span class="lbl" data-i18n="p5">Budget serré</span></div>
+        <div class="pcard" onclick="selCard(this,'price')"><span class="amt">5–10€</span><span class="lbl" data-i18n="p8">Sweet spot 🎯</span></div>
+        <div class="pcard" onclick="selCard(this,'price')"><span class="amt">10–15€</span><span class="lbl" data-i18n="p10">Pour de la qualité</span></div>
       </div>
       <p class="err-hint" id="err-price" data-i18n="err_required">Champ obligatoire</p>
     </div>
@@ -219,7 +218,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);min-h
       <div class="chips">
         <button class="chip" onclick="selChip(this,'solo')" data-i18n="solo_solo">🧍 Je viens solo</button>
         <button class="chip" onclick="selChip(this,'solo')" data-i18n="solo_group">👥 J'amène des potes</button>
-        <button class="chip" onclick="selChip(this,'solo')" data-i18n="solo_club">🏅 Je joue en club</button>
       </div>
       <p class="err-hint" id="err-solo" data-i18n="err_select">Sélectionne une option</p>
     </div>
@@ -254,9 +252,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);min-h
       <div style="margin-top:16px;">
         <label class="field-label" style="margin-bottom:8px;display:block;" data-i18n="lbl_dispo">Tu préfères jouer quand ?</label>
         <div class="chips">
-          <button class="chip" onclick="selChip(this,'dispo')" data-i18n="d1">Vendredi soir</button>
-          <button class="chip" onclick="selChip(this,'dispo')" data-i18n="d2">Samedi après-midi</button>
-          <button class="chip" onclick="selChip(this,'dispo')" data-i18n="d3">En semaine</button>
+          <button class="chip" onclick="selChip(this,'dispo')" data-i18n="d1">Weekend - Vendredi soir</button>
+          <button class="chip" onclick="selChip(this,'dispo')" data-i18n="d2">Semaine (soir)</button>
         </div>
         <p class="err-hint" id="err-dispo" data-i18n="err_select">Sélectionne une option</p>
       </div>
