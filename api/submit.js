@@ -21,32 +21,32 @@ export default async function handler(req, res) {
       postalCode: postal || '',
       source: 'BeBall House Form',
       tags: ['BeBall House', session || 'Open Gym #02', type === 'retour' ? 'Retour' : 'Nouveau'],
-      customField: {
-        frequence_jeu: freq || '',
-        niveau: level || '',
-        budget_session: price || '',
-        vient_avec: solo || '',
-        manque_bruxelles: manque || '',
-        source_decouverte: source || '',
-        disponibilite: dispo || '',
-        langue_formulaire: lang || 'fr',
-        session_inscrite: session || 'Open Gym #02',
-        type_inscription: type || 'nouveau',
-      }
+      customFields: [
+        { key: 'frequence_jeu', field_value: freq || '' },
+        { key: 'niveau', field_value: level || '' },
+        { key: 'budget_session', field_value: price || '' },
+        { key: 'vient_avec', field_value: solo || '' },
+        { key: 'manque_bruxelles', field_value: manque || '' },
+        { key: 'source_decouverte', field_value: source || '' },
+        { key: 'disponibilite', field_value: dispo || '' },
+        { key: 'langue_formulaire', field_value: lang || 'fr' },
+        { key: 'session_inscrite', field_value: session || 'Open Gym #02' },
+        { key: 'type_inscription', field_value: type || 'nouveau' },
+      ]
     };
 
-    const ghlRes = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
+    // GHL API v2 endpoint for sub-accounts
+    const ghlRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${GHL_API_KEY}`,
         'Content-Type': 'application/json',
+        'Version': '2021-07-28',
       },
       body: JSON.stringify(contact)
     });
 
-    // Read as text first to avoid JSON parse crash
     const rawText = await ghlRes.text();
-
     let ghlData = {};
     try { ghlData = JSON.parse(rawText); } catch(e) {
       console.error('GHL non-JSON response:', rawText);
