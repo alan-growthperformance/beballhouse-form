@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const GHL_API_KEY = process.env.GHL_API_KEY;
+  const LOCATION_ID = 'IVyJR0QEPnSEV9ZMlpHw';
 
   try {
     const { name, phone, postal, freq, level, price, solo, manque, source, dispo, type, lang, session } = req.body;
@@ -19,6 +20,7 @@ export default async function handler(req, res) {
       lastName,
       phone: phone || '',
       postalCode: postal || '',
+      locationId: LOCATION_ID,
       source: 'BeBall House Form',
       tags: ['BeBall House', session || 'Open Gym #02', type === 'retour' ? 'Retour' : 'Nouveau'],
       customFields: [
@@ -35,7 +37,6 @@ export default async function handler(req, res) {
       ]
     };
 
-    // GHL API v2 endpoint for sub-accounts
     const ghlRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
       method: 'POST',
       headers: {
