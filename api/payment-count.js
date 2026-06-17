@@ -30,16 +30,17 @@ export default async function handler(req, res) {
       );
 
       if (!ghlRes.ok) {
-        return res.status(200).json({ count: memCount || 0, max: 20 });
+        return res.status(200).json({ count: memCount || 0, max: MAX_SPOTS });
       }
 
       const data = await ghlRes.json();
       // Count contacts with "Paiement Confirmé" tag
-      const paid = (data.contacts || []).filter(c => 
+      const MAX_SPOTS = 17;
+const paid = (data.contacts || []).filter(c => 
         c.tags && c.tags.includes('Paiement Confirmé')
       );
       
-      return res.status(200).json({ count: paid.length, max: 20, open: paid.length < 20 });
+      return res.status(200).json({ count: paid.length, max: MAX_SPOTS, open: paid.length < MAX_SPOTS });
     }
 
     if (req.method === 'POST') {
@@ -82,6 +83,6 @@ export default async function handler(req, res) {
 
   } catch(err) {
     console.error('Payment count error:', err.message);
-    return res.status(200).json({ count: 0, max: 20, open: true });
+    return res.status(200).json({ count: 0, max: MAX_SPOTS, open: true });
   }
 }
