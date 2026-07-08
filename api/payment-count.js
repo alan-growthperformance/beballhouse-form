@@ -1,11 +1,13 @@
-// Persistent payment counter using Vercel Blob or simple global
-// We use a module-level variable + Vercel's serverless persistence trick
-
+// Persistent payment counter using GHL contact tags as source of truth
 const STORAGE_KEY = 'bbh_payment_count';
 
-// In-memory store (persists within the same serverless instance)
-// For true persistence across instances, we use GHL contact count
+// In-memory store (persists within the same serverless instance only)
 let memCount = null;
+
+// Session 3 config
+const MAX_SPOTS = 35;
+const PAID_TAG = 'paye-session-3';
+const PARTICIPANT_TAG = 'session-3-participant';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,7 +20,7 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      // Count contacts tagged "Paiement Confirmé" in GHL
+      // Count contacts tagged as paid for session 3
       const ghlRes = await fetch(
         `https://services.leadconnectorhq.com/contacts/?locationId=${LOCATION_ID}&limit=100`,
         {
@@ -30,25 +32,26 @@ export default async function handler(req, res) {
       );
 
       if (!ghlRes.ok) {
-        return res.status(200).json({ count: memCount || 0, max: MAX_SPOTS });
+        return res.status(200).json({ count: memCount || 0, max: MAX_SPOTS, open: true });
       }
 
       const data = await ghlRes.json();
-      // Count contacts with "Paiement Confirmé" tag
-      const MAX_SPOTS = 17;
-const paid = (data.contacts || []).filter(c => 
-        c.tags && c.tags.includes('Paiement Confirmé')
+      const paid = (data.contacts || []).filter(c =>
+        c.tags && c.tags.includes(PAID_TAG)
       );
-      
-      return res.status(200).json({ count: paid.length, max: MAX_SPOTS, open: paid.length < MAX_SPOTS });
+
+      return res.status(200).json({
+        count: paid.length,
+        max: MAX_SPOTS,
+        open: paid.length < MAX_SPOTS
+      });
     }
 
     if (req.method === 'POST') {
       const { count } = req.body || {};
       if (count !== undefined) memCount = count;
-      
-      // Tag the latest contact in GHL as "Paiement Confirmé"
-      // First get most recent contact
+
+      // Tag the latest contact in GHL as paid for session 3
       const ghlRes = await fetch(
         `https://services.leadconnectorhq.com/contacts/?locationId=${LOCATION_ID}&limit=1&sortBy=dateAdded&sortOrder=desc`,
         {
@@ -63,7 +66,6 @@ const paid = (data.contacts || []).filter(c =>
         const data = await ghlRes.json();
         const contact = data.contacts?.[0];
         if (contact?.id) {
-          // Add "Paiement Confirmé" tag
           await fetch(`https://services.leadconnectorhq.com/contacts/${contact.id}`, {
             method: 'PUT',
             headers: {
@@ -72,7 +74,7 @@ const paid = (data.contacts || []).filter(c =>
               'Version': '2021-07-28',
             },
             body: JSON.stringify({
-              tags: [...(contact.tags || []), 'Paiement Confirmé', 'Open Gym #02']
+              tags: [...(contact.tags || []), PAID_TAG, PARTICIPANT_TAG]
             })
           });
         }
@@ -80,8 +82,7 @@ const paid = (data.contacts || []).filter(c =>
 
       return res.status(200).json({ success: true });
     }
-
-  } catch(err) {
+  } catch (err) {
     console.error('Payment count error:', err.message);
     return res.status(200).json({ count: 0, max: MAX_SPOTS, open: true });
   }
