@@ -10,6 +10,8 @@ const MAX_SPOTS = 35;
 const PAID_TAG = 'paye-session-3';
 
 export default async function handler(req, res) {
+  const debug = req.query?.debug === '1';
+
   try {
     const searchRes = await fetch(
       `https://services.leadconnectorhq.com/contacts/search`,
@@ -30,19 +32,29 @@ export default async function handler(req, res) {
       }
     );
 
+    const data = await searchRes.json().catch(() => ({}));
+
     if (!searchRes.ok) {
       // En cas d'erreur GHL, on n'affiche jamais "complet" par erreur :
       // on laisse le lien ouvert pour ne pas bloquer les inscriptions.
-      return res.status(200).json({ count: 0, max: MAX_SPOTS, open: true });
+      return res.status(200).json({
+        count: 0, max: MAX_SPOTS, open: true,
+        ...(debug ? { debug_error: true, ghl_status: searchRes.status, ghl_response: data } : {})
+      });
     }
 
-    const data = await searchRes.json();
     const count = data?.meta?.total ?? (data?.contacts?.length || 0);
     const open = count < MAX_SPOTS;
 
-    return res.status(200).json({ count, max: MAX_SPOTS, open });
+    return res.status(200).json({
+      count, max: MAX_SPOTS, open,
+      ...(debug ? { ghl_status: searchRes.status, ghl_response: data } : {})
+    });
   } catch (err) {
     console.error('Payment count error:', err.message);
-    return res.status(200).json({ count: 0, max: MAX_SPOTS, open: true });
+    return res.status(200).json({
+      count: 0, max: MAX_SPOTS, open: true,
+      ...(debug ? { debug_error: true, catch_error: err.message } : {})
+    });
   }
 }
