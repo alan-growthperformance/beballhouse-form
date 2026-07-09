@@ -2,7 +2,7 @@
 // Reçoit les données du formulaire (index.html) et crée/met à jour le contact
 // dans GoHighLevel (GHL) en utilisant l'EMAIL comme identifiant (plus de téléphone).
 
-const GHL_API_KEY = process.env.GHL_API_KEY;
+const GHL_API_KEY = process.env.GHL;
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
 
 export default async function handler(req, res) {
