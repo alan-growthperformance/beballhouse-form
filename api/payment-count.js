@@ -12,7 +12,7 @@
 
 const GHL_API_KEY = process.env.GHL;
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
-const MAX_SPOTS = 35;
+const MAX_SPOTS = 30;
 const PAID_TAG = 'paye-session-3';
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10; // garde-fou : 10 x 100 = 1000 contacts scannés max
