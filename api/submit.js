@@ -32,7 +32,30 @@ export default async function handler(req, res) {
       }
     );
     const searchData = await searchRes.json().catch(() => ({}));
-    const existingContact = searchData?.contact || null;
+    const foundContact = searchData?.contact || null;
+
+    // IMPORTANT : l'endpoint /contacts/search/duplicate ne renvoie pas
+    // forcément la liste complète des tags du contact. Pour être sûr de ne
+    // rien écraser, on va chercher la fiche complète et à jour du contact
+    // via GET /contacts/{id} avant de fusionner les tags.
+    let existingContact = foundContact;
+    if (foundContact?.id) {
+      const fullContactRes = await fetch(
+        `https://services.leadconnectorhq.com/contacts/${foundContact.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${GHL_API_KEY}`,
+            'Version': '2021-07-28',
+          }
+        }
+      );
+      const fullContactData = await fullContactRes.json().catch(() => ({}));
+      if (fullContactRes.ok && fullContactData?.contact) {
+        existingContact = fullContactData.contact;
+      }
+      // Si ce GET échoue pour une raison quelconque, on garde foundContact
+      // (moins fiable mais on ne bloque pas l'inscription pour autant).
+    }
 
     const [firstName, ...rest] = name.trim().split(' ');
     const lastName = rest.join(' ') || '';
