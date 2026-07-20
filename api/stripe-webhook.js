@@ -69,11 +69,29 @@ async function tagContactByEmail(email) {
     }
   );
   const searchData = await searchRes.json().catch(() => ({}));
-  const contact = searchData?.contact;
+  const foundContact = searchData?.contact;
 
-  if (!contact?.id) {
+  if (!foundContact?.id) {
     console.warn('Aucun contact GHL trouvé pour cet email:', email);
     return;
+  }
+
+  // IMPORTANT : /contacts/search/duplicate ne renvoie pas forcément la liste
+  // complète des tags. On récupère la fiche complète et à jour du contact
+  // avant de fusionner, pour ne jamais écraser les tags des sessions précédentes.
+  let contact = foundContact;
+  const fullContactRes = await fetch(
+    `https://services.leadconnectorhq.com/contacts/${foundContact.id}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${GHL_API_KEY}`,
+        'Version': '2021-07-28',
+      }
+    }
+  );
+  const fullContactData = await fullContactRes.json().catch(() => ({}));
+  if (fullContactRes.ok && fullContactData?.contact) {
+    contact = fullContactData.contact;
   }
 
   // 2. Ajouter les 3 tags
