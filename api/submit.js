@@ -37,6 +37,18 @@ export default async function handler(req, res) {
     const [firstName, ...rest] = name.trim().split(' ');
     const lastName = rest.join(' ') || '';
 
+    // Nouveaux tags à ajouter pour cette inscription (session 4)
+    const newTagsForThisSession = ['session-4-inscrit', type === 'retour' ? 'retour' : 'nouveau'];
+
+    // IMPORTANT : on fusionne avec les tags déjà présents sur le contact
+    // (paye-session-3, session-3-participant, etc.) pour ne jamais écraser
+    // l'historique des sessions précédentes. Chaque session ajoute ses tags,
+    // aucune ne remplace celles d'avant.
+    const mergedTags = Array.from(new Set([
+      ...(existingContact?.tags || []),
+      ...newTagsForThisSession
+    ]));
+
     const contactPayload = {
       locationId: GHL_LOCATION_ID,
       email,
@@ -54,7 +66,7 @@ export default async function handler(req, res) {
         { key: 'session_inscrite', field_value: session || '' },
         { key: 'type_inscription', field_value: type || '' },
       ],
-      tags: ['session-4-inscrit', type === 'retour' ? 'retour' : 'nouveau']
+      tags: mergedTags
     };
 
     let contactId;
