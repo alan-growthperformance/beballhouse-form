@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         { key: 'session_inscrite', field_value: session || '' },
         { key: 'type_inscription', field_value: type || '' },
       ],
-      tags: ['session-3-inscrit', type === 'retour' ? 'retour' : 'nouveau']
+      tags: ['session-4-inscrit', type === 'retour' ? 'retour' : 'nouveau']
     };
 
     let contactId;
