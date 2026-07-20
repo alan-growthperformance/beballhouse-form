@@ -1,7 +1,7 @@
 // api/stripe-webhook.js
 // Écoute les paiements Stripe réussis et ajoute automatiquement les tags :
-//   - paye-session-3
-//   - session-3-participant
+//   - paye-session-4
+//   - session-4-participant
 //   - paye-stripe
 // sur le contact GHL dont l'email correspond à celui du payeur.
 // Résultat : plus besoin de Make pour les paiements Stripe, tout est automatique.
@@ -79,8 +79,8 @@ async function tagContactByEmail(email) {
   // 2. Ajouter les 3 tags
   const newTags = Array.from(new Set([
     ...(contact.tags || []),
-    'paye-session-3',
-    'session-3-participant',
+    'paye-session-4',
+    'session-4-participant',
     'paye-stripe'
   ]));
 
