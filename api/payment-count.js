@@ -1,6 +1,6 @@
 // api/payment-count.js
 // Compte le nombre de contacts GHL taggés "paye-session-4" pour savoir
-// si les 35 places sont prises.
+// si les 33 places sont prises.
 //
 // IMPORTANT : on utilise ici l'endpoint POST /contacts/search (recommandé
 // par GHL), et non GET /contacts/ (déprécié par GHL, et qui chez toi ne
