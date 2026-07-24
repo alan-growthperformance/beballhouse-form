@@ -1,6 +1,6 @@
 // api/payment-count.js
 // Compte le nombre de contacts GHL taggés "paye-session-4" pour savoir
-// si les 35 places sont prises.
+// si les 38 places sont prises.
 //
 // IMPORTANT : on utilise ici l'endpoint POST /contacts/search (recommandé
 // par GHL), et non GET /contacts/ (déprécié par GHL, et qui chez toi ne
@@ -12,7 +12,7 @@
 
 const GHL_API_KEY = process.env.GHL;
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
-const MAX_SPOTS = 35;
+const MAX_SPOTS = 38;
 const PAID_TAG = 'paye-session-4';
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10; // garde-fou : 10 x 100 = 1000 contacts scannés max
