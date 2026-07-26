@@ -1,6 +1,13 @@
 // api/submit.js
 // Reçoit les données du formulaire (index.html) et crée/met à jour le contact
 // dans GoHighLevel (GHL) en utilisant l'EMAIL comme identifiant (plus de téléphone).
+//
+// IMPORTANT : la session à taguer n'est plus codée en dur. On redemande à
+// chaque soumission quelle est la session "active" (voir lib/sessions.js),
+// pour que le formulaire bascule automatiquement sur la bonne session même
+// si le quota a été atteint entre le chargement de la page et l'envoi.
+
+import { getActiveSession } from '../lib/sessions.js';
 
 const GHL_API_KEY = process.env.GHL;
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
@@ -60,8 +67,18 @@ export default async function handler(req, res) {
     const [firstName, ...rest] = name.trim().split(' ');
     const lastName = rest.join(' ') || '';
 
-    // Nouveaux tags à ajouter pour cette inscription (session 4)
-    const newTagsForThisSession = ['session-4-inscrit', type === 'retour' ? 'retour' : 'nouveau'];
+    // Session active au moment de la soumission (bascule automatique si le
+    // quota de la session précédente vient d'être atteint).
+    const active = await getActiveSession();
+
+    if (!active.open) {
+      // Sécurité : si toutes les sessions connues sont pleines, on refuse
+      // proprement plutôt que d'inscrire quelqu'un sur une session bouclée.
+      return res.status(409).json({ error: 'Complet', session: active.label });
+    }
+
+    // Nouveaux tags à ajouter pour cette inscription (session active)
+    const newTagsForThisSession = [active.inscritTag, type === 'retour' ? 'retour' : 'nouveau'];
 
     // IMPORTANT : on fusionne avec les tags déjà présents sur le contact
     // (paye-session-3, session-3-participant, etc.) pour ne jamais écraser
@@ -86,7 +103,7 @@ export default async function handler(req, res) {
         { key: 'source_decouverte', field_value: source || '' },
         { key: 'disponibilite', field_value: dispo || '' },
         { key: 'langue_formulaire', field_value: lang || '' },
-        { key: 'session_inscrite', field_value: session || '' },
+        { key: 'session_inscrite', field_value: active.label },
         { key: 'type_inscription', field_value: type || '' },
       ],
       tags: mergedTags
