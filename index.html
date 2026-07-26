@@ -283,7 +283,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);min-h
     <h2 class="pay-title"><span data-i18n="pay_t1">INSCRIPTION</span><br><em data-i18n="pay_t2">CONFIRMÉE !</em></h2>
     <p class="pay-sub" data-i18n="pay_sub">Tu es sur la liste. Plus qu'une étape :<br>règle les 5€ pour verrouiller ta place.</p>
     <div class="pay-summary">
-      <div class="pay-row"><span class="rl" data-i18n="pay_session_l">Session</span><span class="rv">Open Gym #04</span></div>
+      <div class="pay-row"><span class="rl" data-i18n="pay_session_l">Session</span><span class="rv" id="paySessionVal">Open Gym #04</span></div>
       <div class="pay-row"><span class="rl" data-i18n="pay_format_l">Format</span><span class="rv">Pick-up 5v5</span></div>
       <div class="pay-row"><span class="rl" data-i18n="pay_duration_l">Durée</span><span class="rv">2h</span></div>
       <div class="pay-row"><span class="rl" data-i18n="pay_location_l">Lieu</span><span class="rv">Bruxelles</span></div>
@@ -302,7 +302,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);min-h
     <div style="background:var(--gr);border:1px solid var(--gr2);border-radius:12px;padding:16px;">
       <p style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">💳 Virement bancaire</p>
       <p style="font-size:13px;color:var(--wh);margin-bottom:4px;">IBAN : <strong>BE76 0015 8288 4695</strong></p>
-      <p style="font-size:13px;color:var(--wh);margin-bottom:4px;">Communication : <strong>Ton email + Session #04</strong></p>
+      <p style="font-size:13px;color:var(--wh);margin-bottom:4px;">Communication : <strong>Ton email + <span id="payCommVal">Session #04</span></strong></p>
       <p style="font-size:12px;color:#e8b84b;line-height:1.5;margin-top:10px;font-weight:600;">⚠️ Merci d'indiquer ton <u>email complet</u> dans la communication — c'est le seul moyen pour nous de te retrouver et confirmer ta place.</p>
       <p style="font-size:12px;color:var(--mu);line-height:1.5;margin-top:8px;">Ta place est confirmée dès réception du virement (vérification manuelle sous 24h).</p>
     </div>
@@ -311,21 +311,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);min-h
   </div>
 </div>
 
+<!-- ═══ ÉCRAN COMPLET (affiché quand toutes les sessions connues sont pleines) ═══ -->
+<div id="sFull_complet" class="screen">
+  <div class="wrap" style="text-align:center;padding-top:80px;">
+    <h1 style="font-size:28px;margin-bottom:16px;">🏀 <em data-i18n="full_title">COMPLET</em></h1>
+    <p class="pay-sub" data-i18n="full_msg">Les {max} places sont prises pour l'{label}.<br>Suis-nous sur Instagram pour ne pas rater la prochaine session.</p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const i18n = {
   fr: {
-    land_sub: "Pick-up games 5v5 · Max 35 joueurs · Sessions filmées<br>Sécurise ta place pour la prochaine session.",
+    land_sub: "Pick-up games 5v5 · Max {max} joueurs · Sessions filmées<br>Sécurise ta place pour la prochaine session.",
     land_q: "C'est ta première fois avec nous ?",
     btn_new_title: "Première fois",
     btn_new_sub: "Dis-nous qui tu es pour qu'on te prépare la meilleure expérience.",
     btn_return_title: "Je suis déjà venu",
     btn_return_sub: "Inscription rapide, on te connaît déjà.",
     back: "Retour",
-    badge_new: "🏀 Première fois · Open Gym #04",
+    badge_new: "🏀 Première fois · {label}",
     badge_return: "🔁 Bon retour · Open Gym #04",
-    hero_sub: "Pick-up games 5v5. Max 35 joueurs. Sessions filmées.<br>Sécurise ta place maintenant.",
+    hero_sub: "Pick-up games 5v5. Max {max} joueurs. Sessions filmées.<br>Sécurise ta place maintenant.",
     return_sub: "Confirme juste tes infos et on s'occupe du reste.",
     q1_title: "Qui es-tu ? <small>(obligatoire)</small>",
     lbl_name: "Prénom & Nom", ph_name: "Jordan Dupont",
@@ -360,19 +368,20 @@ const i18n = {
     toast_required: "⚠️ Remplis tous les champs obligatoires",
     toast_sending: "Envoi en cours...",
     toast_error: "⚠️ Erreur d'envoi, réessaie.",
-    full_msg: "Les 35 places sont prises pour l'Open Gym #04.<br>Suis-nous sur Instagram pour ne pas rater la prochaine session.",
+    full_title: "COMPLET",
+    full_msg: "Les {max} places sont prises pour l'{label}.<br>Suis-nous sur Instagram pour ne pas rater la prochaine session.",
   },
   nl: {
-    land_sub: "Pick-up games 5v5 · Max 35 spelers · Sessies gefilmd<br>Beveilig je plek voor de volgende sessie.",
+    land_sub: "Pick-up games 5v5 · Max {max} spelers · Sessies gefilmd<br>Beveilig je plek voor de volgende sessie.",
     land_q: "Is dit je eerste keer bij ons?",
     btn_new_title: "Eerste keer",
     btn_new_sub: "Vertel ons wie je bent zodat we de beste ervaring voor je voorbereiden.",
     btn_return_title: "Ik ben al geweest",
     btn_return_sub: "Snelle inschrijving, we kennen je al.",
     back: "Terug",
-    badge_new: "🏀 Eerste keer · Open Gym #04",
+    badge_new: "🏀 Eerste keer · {label}",
     badge_return: "🔁 Welkom terug · Open Gym #04",
-    hero_sub: "Pick-up games 5v5. Max 35 spelers. Sessies gefilmd.<br>Beveilig je plek nu.",
+    hero_sub: "Pick-up games 5v5. Max {max} spelers. Sessies gefilmd.<br>Beveilig je plek nu.",
     return_sub: "Bevestig gewoon je gegevens en wij regelen de rest.",
     q1_title: "Wie ben jij? <small>(verplicht)</small>",
     lbl_name: "Voornaam & Naam", ph_name: "Jordan Dupont",
@@ -407,19 +416,20 @@ const i18n = {
     toast_required: "⚠️ Vul alle verplichte velden in",
     toast_sending: "Verzenden...",
     toast_error: "⚠️ Fout bij verzenden, probeer opnieuw.",
-    full_msg: "Alle 35 plaatsen zijn bezet voor Open Gym #04.<br>Volg ons op Instagram om de volgende sessie niet te missen.",
+    full_title: "VOL",
+    full_msg: "Alle {max} plaatsen zijn bezet voor {label}.<br>Volg ons op Instagram om de volgende sessie niet te missen.",
   },
   en: {
-    land_sub: "Pick-up games 5v5 · Max 35 players · Filmed sessions<br>Secure your spot for the next session.",
+    land_sub: "Pick-up games 5v5 · Max {max} players · Filmed sessions<br>Secure your spot for the next session.",
     land_q: "Is this your first time with us?",
     btn_new_title: "First time",
     btn_new_sub: "Tell us who you are so we can prepare the best experience for you.",
     btn_return_title: "I've been before",
     btn_return_sub: "Quick sign-up, we already know you.",
     back: "Back",
-    badge_new: "🏀 First time · Open Gym #04",
+    badge_new: "🏀 First time · {label}",
     badge_return: "🔁 Welcome back · Open Gym #04",
-    hero_sub: "Pick-up games 5v5. Max 35 players. Filmed sessions.<br>Secure your spot now.",
+    hero_sub: "Pick-up games 5v5. Max {max} players. Filmed sessions.<br>Secure your spot now.",
     return_sub: "Just confirm your info and we'll handle the rest.",
     q1_title: "Who are you? <small>(required)</small>",
     lbl_name: "First & Last Name", ph_name: "Jordan Dupont",
@@ -454,11 +464,17 @@ const i18n = {
     toast_required: "⚠️ Fill in all required fields",
     toast_sending: "Sending...",
     toast_error: "⚠️ Send error, please try again.",
-    full_msg: "All 35 spots are taken for Open Gym #04.<br>Follow us on Instagram so you don't miss the next session.",
+    full_title: "FULL",
+    full_msg: "All {max} spots are taken for {label}.<br>Follow us on Instagram so you don't miss the next session.",
   }
 };
 
 let lang = 'fr';
+
+// Session active actuellement affichée (remplie par checkCapacity()).
+// Valeurs par défaut avant le premier appel API, pour que le texte statique
+// du HTML reste cohérent le temps que le fetch réponde.
+window.__activeSession = { max: 20, label: 'Open Gym #05 · Filles' };
 
 function setLang(l) {
   lang = l;
@@ -467,12 +483,32 @@ function setLang(l) {
   const t = i18n[l];
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if(t[key] !== undefined) el.innerHTML = t[key];
+    if(t[key] !== undefined) el.innerHTML = fillSessionTokens(t[key]);
   });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     const key = el.getAttribute('data-i18n-ph');
     if(t[key] !== undefined) el.placeholder = t[key];
   });
+  updateSessionDisplay();
+}
+
+// Remplace {max} et {label} par les vraies valeurs de la session active
+// dans un texte i18n (voir badge_new, hero_sub, land_sub, full_msg).
+function fillSessionTokens(str) {
+  const s = window.__activeSession || {};
+  return str
+    .replace(/\{max\}/g, s.max != null ? s.max : '')
+    .replace(/\{label\}/g, s.label || '');
+}
+
+// Met à jour les éléments qui affichent la session en dehors du système
+// i18n (le récapitulatif de paiement, la communication de virement).
+function updateSessionDisplay() {
+  const s = window.__activeSession || {};
+  const sessionVal = document.getElementById('paySessionVal');
+  if(sessionVal) sessionVal.textContent = s.label || '';
+  const commVal = document.getElementById('payCommVal');
+  if(commVal) commVal.textContent = s.label || '';
 }
 
 function go(id) {
@@ -539,7 +575,7 @@ function submitFull() {
     manque: document.querySelector(`#sFull .chip.sel[onclick*="manque"]`)?.textContent,
     source: document.querySelector(`#sFull .chip.sel[onclick*="source"]`)?.textContent,
     dispo: document.querySelector(`#sFull .chip.sel[onclick*="dispo"]`)?.textContent,
-    type: 'nouveau', lang, session: 'Open Gym #04'
+    type: 'nouveau', lang, session: (window.__activeSession && window.__activeSession.label) || 'Open Gym'
   };
 
   sendToGHL(data, 'submitBtn', 'spinner');
@@ -556,34 +592,57 @@ function submitReturn() {
   else { document.getElementById('r-email').classList.remove('err'); document.getElementById('err-remail').classList.remove('on'); }
   if(!ok) { showToast(t.toast_required); return; }
 
-  const data = { name, email, type: 'retour', lang, session: 'Open Gym #04' };
+  const data = { name, email, type: 'retour', lang, session: (window.__activeSession && window.__activeSession.label) || 'Open Gym' };
   sendToGHL(data, 'submitReturnBtn', 'spinnerR');
 }
 
-const MAX_SPOTS = 35;
-const COUNTER_KEY = 'bbh_session3_count';
-
+// checkCapacity() interroge /api/payment-count, qui renvoie la session
+// actuellement "active" (voir lib/sessions.js côté serveur) : celle-ci
+// bascule automatiquement sur la session suivante dès que le quota de la
+// précédente est atteint — sans aucune manipulation manuelle de notre part.
+// On garde le résultat dans window.__activeSession pour que tout le reste
+// du formulaire (textes, récap, tag envoyé à GHL) reste synchronisé.
 async function checkCapacity() {
   try {
     const res = await fetch('/api/payment-count');
     if(!res.ok) return true;
     const data = await res.json();
+    window.__activeSession = {
+      max: data.max,
+      label: data.sessionLabel || 'Open Gym',
+      count: data.count
+    };
+    updateSessionDisplay();
     return data.open !== false;
   } catch(e) {
     return true;
   }
 }
 
-async function incrementCounter() {
-  // Counter is incremented by Stripe webhook on successful payment
+function showFullScreen() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  const full = document.getElementById('sFull_complet');
+  if(full) {
+    full.classList.add('on');
+    // Réapplique les textes pour que {max}/{label} soient bien remplacés
+    // avec la session qui vient d'être détectée comme pleine.
+    full.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const t = i18n[lang];
+      if(t[key] !== undefined) el.innerHTML = fillSessionTokens(t[key]);
+    });
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
   const hasSpots = await checkCapacity();
+  // Réapplique la langue courante maintenant qu'on connaît la session active,
+  // pour que le badge / le sous-titre affichent le bon numéro et le bon
+  // quota dès l'arrivée sur la page (pas seulement au changement de langue).
+  setLang(lang);
   if(!hasSpots) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
-    const full = document.getElementById('sFull_complet');
-    if(full) full.classList.add('on');
+    showFullScreen();
   }
 });
 
@@ -605,12 +664,12 @@ async function sendToGHL(data, btnId, spinnerId) {
     });
 
     if(res.ok) {
-      await incrementCounter();
+      // Re-vérifie la capacité juste après l'envoi : si ce paiement/inscription
+      // vient de faire basculer sur la session suivante (ou si tout est plein),
+      // on l'affiche immédiatement plutôt que d'envoyer vers l'écran de paiement.
       const stillOpen = await checkCapacity();
       if(!stillOpen) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
-        const full = document.getElementById('sFull_complet');
-        if(full) full.classList.add('on');
+        showFullScreen();
         return;
       }
       document.getElementById('payBackBtn').setAttribute('onclick', data.type === 'retour' ? "go('sReturn')" : "go('sFull')");
