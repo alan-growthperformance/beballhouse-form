@@ -1,12 +1,20 @@
 // api/stripe-webhook.js
 // Écoute les paiements Stripe réussis et ajoute automatiquement les tags :
-//   - paye-session-4
-//   - session-4-participant
+//   - paye-session-X
+//   - session-X-participant
 //   - paye-stripe
 // sur le contact GHL dont l'email correspond à celui du payeur.
 // Résultat : plus besoin de Make pour les paiements Stripe, tout est automatique.
+//
+// IMPORTANT : X n'est plus codé en dur. On regarde d'abord quels tags
+// "session-X-inscrit" le contact a déjà (posés par api/submit.js au moment
+// de son inscription) pour tagger la BONNE session, même si le formulaire a
+// basculé sur la session suivante entre son inscription et son paiement.
+// Si on ne trouve aucun tag d'inscription (ex: paiement offline ajouté à la
+// main), on retombe sur la session active du moment.
 
 import Stripe from 'stripe';
+import { findSessionFromTags, getActiveSession } from '../lib/sessions.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
@@ -94,11 +102,20 @@ async function tagContactByEmail(email) {
     contact = fullContactData.contact;
   }
 
-  // 2. Ajouter les 3 tags
+  // 2. Déterminer la session à taguer : celle pour laquelle ce contact
+  // s'est inscrit (tag "session-X-inscrit" déjà présent sur sa fiche).
+  // Fallback sur la session active si aucun tag d'inscription trouvé.
+  let session = findSessionFromTags(contact.tags || []);
+  if (!session) {
+    session = await getActiveSession();
+  }
+
+  // 3. Ajouter les 3 tags de paiement, fusionnés avec l'existant pour ne
+  // jamais écraser les tags des sessions précédentes.
   const newTags = Array.from(new Set([
     ...(contact.tags || []),
-    'paye-session-4',
-    'session-4-participant',
+    session.paidTag,
+    session.participantTag,
     'paye-stripe'
   ]));
 
