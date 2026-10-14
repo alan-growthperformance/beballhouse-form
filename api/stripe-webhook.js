@@ -22,10 +22,12 @@ const GHL_API_KEY = process.env.GHL;
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
 
 // BBH x TeamBrussels3x3 (Open Gym 3x3) : événement séparé du 5x5, identifié
-// par le MONTANT payé (6€ solo / 20€ équipe), pas par un lien Stripe précis
-// -- l'ancien lien 5x5 à 5€ n'est jamais concerné par cette branche.
-const AMOUNT_3X3_SOLO = 600;   // 6€ en centimes
-const AMOUNT_3X3_TEAM = 2000;  // 20€ en centimes
+// par le MONTANT payé pour l'équipe (15€) et par client_reference_id pour le
+// solo : le 5€ solo est aussi le prix du 5x5 (même lien Stripe), donc le
+// montant seul ne suffit plus. Le formulaire 3x3 ajoute ?client_reference_id=3x3-solo
+// au lien solo ; le formulaire 5x5 n'envoie rien et reste sur sa branche.
+const AMOUNT_3X3_TEAM = 1500;  // 15€ en centimes
+const REF_3X3_SOLO = '3x3-solo';
 const TAG_3X3_PAID = '3x3-paye';
 const TAG_3X3_PARTICIPANT = '3x3-participant';
 
@@ -62,7 +64,7 @@ export default async function handler(req, res) {
     const email = session.customer_details?.email || session.customer_email;
     const amount = session.amount_total;
 
-    if (amount === AMOUNT_3X3_SOLO || amount === AMOUNT_3X3_TEAM) {
+    if (amount === AMOUNT_3X3_TEAM || session.client_reference_id === REF_3X3_SOLO) {
       // Paiement BBH x TeamBrussels3x3 (Open Gym 3x3)
       try {
         await tag3x3Payment(session, amount === AMOUNT_3X3_TEAM);
@@ -148,8 +150,8 @@ async function tagContactByEmail(email) {
 
 // ─────────────────────────────────────────────────────────────────────────
 // AJOUT POUR BBH x TeamBrussels3x3 (Open Gym 3x3)
-// Solo (6€) : on tague simplement le contact qui a payé, comme pour le 5x5.
-// Équipe (20€) : un seul paiement (le responsable) doit valider TOUTE
+// Solo (5€) : on tague simplement le contact qui a payé, comme pour le 5x5.
+// Équipe (15€) : un seul paiement (le responsable) doit valider TOUTE
 // l'équipe. On passe l'identifiant d'équipe dans l'URL Stripe via
 // ?client_reference_id=<teamId> (voir 3x3.html) ; ici on retrouve tous les
 // membres tagués "equipe-<teamId>" à l'inscription (api/submit-3x3.js) et on

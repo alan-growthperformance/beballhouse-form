@@ -1,11 +1,11 @@
 // api/capacity-3x3.js
-// Places restantes pour BBH x TeamBrussels3x3 (24 places fixes, comptées
+// Places restantes pour BBH x TeamBrussels3x3 (16 places fixes, comptées
 // via le tag GHL "3x3-paye"). Interrogé par 3x3.html au chargement et
 // après chaque tentative d'inscription refusée pour place insuffisante.
 
 import { countByTag } from '../lib/sessions.js';
 
-const MAX_SPOTS = 24;
+const MAX_SPOTS = 16;
 const PAID_TAG = '3x3-paye';
 
 export default async function handler(req, res) {
