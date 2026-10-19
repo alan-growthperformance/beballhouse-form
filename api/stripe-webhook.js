@@ -69,7 +69,11 @@ export default async function handler(req, res) {
       try {
         await tag3x3Payment(session, amount === AMOUNT_3X3_TEAM);
       } catch (err) {
+        // On répond 500 pour que Stripe REJOUE l'événement automatiquement
+        // (retries pendant plusieurs jours) au lieu d'oublier le paiement en
+        // silence. Le tagging est idempotent : rejouer ne duplique rien.
         console.error('Tagging 3x3 error:', err.message);
+        return res.status(500).json({ error: 'tagging_failed', detail: err.message });
       }
     } else if (email) {
       try {
@@ -156,20 +160,65 @@ async function tagContactByEmail(email) {
 // ?client_reference_id=<teamId> (voir 3x3.html) ; ici on retrouve tous les
 // membres tagués "equipe-<teamId>" à l'inscription (api/submit-3x3.js) et on
 // les tague tous comme payés.
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// La recherche GHL par tag passe par un index qui peut avoir quelques
+// secondes de retard : un paiement qui arrive 30 s après l'inscription peut
+// ne pas encore y retrouver les coéquipiers. On réessaie donc brièvement.
+const TEAM_SEARCH_DELAYS_MS = [0, 2000, 4000];
+
+async function findTeamMembers(teamTag) {
+  for (const delay of TEAM_SEARCH_DELAYS_MS) {
+    if (delay) await sleep(delay);
+    const members = await searchContactsByTag(teamTag);
+    if (members.length > 0) return members;
+  }
+  return [];
+}
+
+async function tagPayerByEmail(session) {
+  const email = session.customer_details?.email || session.customer_email;
+  if (!email) return false;
+  const contact = await findContactFullByEmail(email);
+  if (!contact?.id) return false;
+  await addTagsToContact(contact.id, contact.tags || []);
+  return true;
+}
+
 async function tag3x3Payment(session, isTeam) {
   if (isTeam) {
     const teamId = session.client_reference_id;
     if (!teamId) {
-      console.warn('Paiement équipe 3x3 sans client_reference_id : impossible de retrouver l\'équipe, à corriger manuellement dans GHL.');
+      // Impossible de retrouver l'équipe : on tague au moins le payeur (il
+      // reçoit ainsi sa confirmation) et on laisse une trace dans les logs
+      // pour compléter les coéquipiers à la main. Rejouer ne servirait à rien.
+      console.warn('Paiement équipe 3x3 sans client_reference_id : seul le payeur est tagué, coéquipiers à tagger manuellement dans GHL.');
+      await tagPayerByEmail(session);
       return;
     }
-    const members = await searchContactsByTag(`equipe-${teamId}`);
+    const members = await findTeamMembers(`equipe-${teamId}`);
     if (members.length === 0) {
+      // Équipe introuvable (index GHL encore en retard, ou inscription
+      // absente) : on tague le payeur pour qu'il ait sa confirmation, puis on
+      // échoue volontairement pour que Stripe rejoue l'événement plus tard
+      // et que tous les coéquipiers soient taggés à ce moment-là.
       console.warn(`Paiement équipe 3x3 : aucun contact trouvé pour l'équipe ${teamId}.`);
-      return;
+      await tagPayerByEmail(session).catch((err) => console.error('Repli payeur 3x3 impossible:', err.message));
+      throw new Error(`aucun contact trouvé pour equipe-${teamId}`);
     }
+    // On tague TOUS les membres, même si l'un d'eux échoue, puis on signale
+    // les échecs (Stripe rejouera, les membres déjà taggés ne sont pas touchés).
+    const failures = [];
     for (const member of members) {
-      await addTagsToContact(member.id, member.tags || []);
+      try {
+        await addTagsToContact(member.id, member.tags || []);
+      } catch (err) {
+        failures.push(`${member.id}: ${err.message}`);
+      }
+    }
+    console.log(`Paiement équipe 3x3 ${teamId} : ${members.length - failures.length}/${members.length} membres taggés.`);
+    if (failures.length > 0) {
+      throw new Error(`échec du tagging pour ${failures.length} membre(s) : ${failures.join(' | ')}`);
     }
   } else {
     const email = session.customer_details?.email || session.customer_email;
@@ -183,17 +232,35 @@ async function tag3x3Payment(session, isTeam) {
   }
 }
 
+// Ajoute les 3 tags de paiement 3x3 sans jamais écraser les autres. On utilise
+// d'abord l'endpoint "ajouter des tags" de GHL (pas de lecture-puis-écriture de
+// toute la liste : pas de risque d'effacer des tags posés en parallèle, par
+// exemple par le scénario Make de paiement). Repli sur l'ancien PUT fusionné.
 async function addTagsToContact(contactId, existingTags) {
-  const newTags = Array.from(new Set([...(existingTags || []), TAG_3X3_PAID, TAG_3X3_PARTICIPANT, 'paye-stripe']));
-  await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+  const tagsToAdd = [TAG_3X3_PAID, TAG_3X3_PARTICIPANT, 'paye-stripe'];
+  const headers = {
+    'Authorization': `Bearer ${GHL_API_KEY}`,
+    'Content-Type': 'application/json',
+    'Version': '2021-07-28',
+  };
+
+  const addRes = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ tags: tagsToAdd })
+  });
+  if (addRes.ok) return;
+
+  const newTags = Array.from(new Set([...(existingTags || []), ...tagsToAdd]));
+  const putRes = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${GHL_API_KEY}`,
-      'Content-Type': 'application/json',
-      'Version': '2021-07-28',
-    },
+    headers,
     body: JSON.stringify({ tags: newTags })
   });
+  if (!putRes.ok) {
+    const detail = (await putRes.text().catch(() => '')).slice(0, 200);
+    throw new Error(`GHL refuse le tagging du contact ${contactId} (POST tags ${addRes.status}, PUT ${putRes.status}) ${detail}`);
+  }
 }
 
 async function findContactFullByEmail(email) {

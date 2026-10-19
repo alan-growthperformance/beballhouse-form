@@ -1,0 +1,9 @@
+{
+  "name": "beballhouse-form",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Formulaires d'inscription BeBall House (Open Gym 5x5 et 3x3) : API Vercel branchée sur GHL, Make et Stripe.",
+  "dependencies": {
+    "stripe": "^16.0.0"
+  }
+}
