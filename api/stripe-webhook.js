@@ -15,6 +15,7 @@
 
 import Stripe from 'stripe';
 import { findSessionFromTags, getActiveSession, searchContactsByTag } from '../lib/sessions.js';
+import { TAG_PAYE, TAG_PAYE_STRIPE, TAG_TEAM_PREFIX } from '../lib/open-gym-7.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
@@ -28,8 +29,8 @@ const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
 // au lien solo ; le formulaire 5x5 n'envoie rien et reste sur sa branche.
 const AMOUNT_3X3_TEAM = 1500;  // 15€ en centimes
 const REF_3X3_SOLO = '3x3-solo';
-const TAG_3X3_PAID = '3x3-paye';
-const TAG_3X3_PARTICIPANT = '3x3-participant';
+// Tags 3x3 (Open Gym 7) définis dans lib/open-gym-7.js : après un paiement, chaque
+// joueur reçoit open-gym-7-paye + paye-stripe. Rien d'autre.
 
 export const config = {
   api: { bodyParser: false }
@@ -158,7 +159,7 @@ async function tagContactByEmail(email) {
 // Équipe (15€) : un seul paiement (le responsable) doit valider TOUTE
 // l'équipe. On passe l'identifiant d'équipe dans l'URL Stripe via
 // ?client_reference_id=<teamId> (voir 3x3.html) ; ici on retrouve tous les
-// membres tagués "equipe-<teamId>" à l'inscription (api/submit-3x3.js) et on
+// membres tagués "equipe-<teamId>" à l'inscription (api/register-team.js) et on
 // les tague tous comme payés.
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -196,7 +197,7 @@ async function tag3x3Payment(session, isTeam) {
       await tagPayerByEmail(session);
       return;
     }
-    const members = await findTeamMembers(`equipe-${teamId}`);
+    const members = await findTeamMembers(`${TAG_TEAM_PREFIX}${teamId}`);
     if (members.length === 0) {
       // Équipe introuvable (index GHL encore en retard, ou inscription
       // absente) : on tague le payeur pour qu'il ait sa confirmation, puis on
@@ -232,12 +233,12 @@ async function tag3x3Payment(session, isTeam) {
   }
 }
 
-// Ajoute les 3 tags de paiement 3x3 sans jamais écraser les autres. On utilise
+// Ajoute les 2 tags de paiement 3x3 (open-gym-7-paye, paye-stripe) sans jamais écraser les autres. On utilise
 // d'abord l'endpoint "ajouter des tags" de GHL (pas de lecture-puis-écriture de
 // toute la liste : pas de risque d'effacer des tags posés en parallèle, par
 // exemple par le scénario Make de paiement). Repli sur l'ancien PUT fusionné.
 async function addTagsToContact(contactId, existingTags) {
-  const tagsToAdd = [TAG_3X3_PAID, TAG_3X3_PARTICIPANT, 'paye-stripe'];
+  const tagsToAdd = [TAG_PAYE, TAG_PAYE_STRIPE];
   const headers = {
     'Authorization': `Bearer ${GHL_API_KEY}`,
     'Content-Type': 'application/json',

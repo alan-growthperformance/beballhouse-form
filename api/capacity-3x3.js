@@ -1,16 +1,14 @@
 // api/capacity-3x3.js
-// Places restantes pour BBH x TeamBrussels3x3 (16 places fixes, comptées
-// via le tag GHL "3x3-paye"). Interrogé par 3x3.html au chargement et
-// après chaque tentative d'inscription refusée pour place insuffisante.
+// Places restantes pour l'Open Gym 7 (BBH x TeamBrussels3x3). La capacité et les
+// tags sont définis dans lib/open-gym-7.js. On compte des JOUEURS qui ont payé
+// (tag open-gym-7-paye, plus l'ancien tag 3x3-paye pour ne rien survendre).
+// Interrogé par 3x3.html au chargement et après chaque inscription.
 
-import { countByTag } from '../lib/sessions.js';
-
-const MAX_SPOTS = 16;
-const PAID_TAG = '3x3-paye';
+import { MAX_SPOTS, countPaid } from '../lib/open-gym-7.js';
 
 export default async function handler(req, res) {
   try {
-    const count = await countByTag(PAID_TAG);
+    const count = await countPaid();
     return res.status(200).json({
       count,
       max: MAX_SPOTS,
